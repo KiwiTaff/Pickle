@@ -41,33 +41,35 @@
     ;
 
     var initialState = {
-                    "rightWall" : {id:  1, x: 35.13,  y: 12.8, halfHeight: 25.6, halfWidth:2   , isStatic: true, isSensor: false},
-                    "ground"    : {id:  2, x: 17.07,  y: 26.6, halfHeight: 2  ,  halfWidth:34.13,isStatic: true, isSensor: false},
-                    "leftWall"  : {id:  3, x: -1,     y: 12.8, halfHeight: 25.6, halfWidth:2   , isStatic: true, isSensor: false},
-                    "unit1"     : {id:  4, x: 6.53 ,  y:20.1 , halfHeight: 8.6 , halfWidth:11  , isStatic: true, isSensor: false},
-                    "cooker"    : {id:  5, x: 13.15,  y:22.9 , halfHeight: 4.7 , halfWidth:4.96, isStatic: true, isSensor: false},
-                    "unit2"     : {id:  6, x: 20.3 ,  y:20.1 , halfHeight: 9.4 , halfWidth:11  , isStatic: true, isSensor: false},
-                    "freezer"   : {id:  7, x: 28.87,  y:20.47, halfHeight: 7.67, halfWidth:10.2, isStatic: true, isSensor: false},
-                    "shelf1"    : {id:  8, x: 28.87,  y:12.73, halfHeight: 6   , halfWidth: 0.1, isStatic: true, isSensor: false},
-                    "shelf2"    : {id:  9, x: 28.87,  y:10   , halfHeight: 6   , halfWidth: 0.1, isStatic: true, isSensor: false},
-                    "fridgeW"   : {id: 10, x: 32.29,  y:11.47, halfHeight: 0.7 , halfWidth: 7.8, isStatic: true, isSensor: false},
-                    "fridgeT"   : {id: 11, x: 28.46,  y:7.6  , halfHeight: 6.83, halfWidth: 0.1, isStatic: true, isSensor: false},
-                    "shelf3"    : {id: 12, x: 5    ,  y:7.75 , halfHeight: 10.1, halfWidth: 1.1, isStatic: true, isSensor: false},
-                    "unit3"     : {id: 13, x: 33.4 ,  y:20.1 , halfHeight: 1.47, halfWidth: 11 , isStatic: true, isSensor: false},
-                    "waterSensr": {id: 15, x: 19,     y: 13.7, halfHeight: 1.4,  halfWidth: 2.4, isStatic:false, isSensor: true},
-                    "ovenDoor"  : {id: 16, x: 13.15,  y: 14.7, halfHeight: 0.2,  halfWidth: 4.7, isStatic: true, isSensor: false},
-                    "fridgeDoor": {id: 17, x: 25.32,  y: 11.47,halfHeight: 7.8,  halfWidth: 0.7, isStatic: true},
-                    "bigPot"    : {id: 14, x: 17.1,   y: 13.4, polys:[
+                        "0"  : {id:  0, x: 35.13,  y: 12.8, halfHeight: 25.6, halfWidth:2, isStatic: true, isSensor: false},//"rightWall"
+                        "1"  : {id:  1, x: 17.07,  y: 26.6, halfHeight: 2  ,  halfWidth:34.13,isStatic: true, isSensor: false},//"ground"    
+                        "2"  : {id:  2, x: -1,     y: 12.8, halfHeight: 25.6, halfWidth:2   , isStatic: true, isSensor: false},//"leftWall"  
+                        "3"  : {id:  3, x: 6.53 ,  y:20.1 , halfHeight: 8.6 , halfWidth:11  , isStatic: true, isSensor: false},//"unit1"     
+                        "4"  : {id:  4, x: 13.15,  y:22.9 , halfHeight: 4.7 , halfWidth:4.96, isStatic: true, isSensor: false},//"cooker"    
+                        "5"  : {id:  5, x: 20.3 ,  y:20.1 , halfHeight: 9.4 , halfWidth:11  , isStatic: true, isSensor: false},//"unit2"     
+                        "6"  : {id:  6, x: 28.87,  y:20.47, halfHeight: 7.67, halfWidth:10.2, isStatic: true, isSensor: false},//"freezer"   
+                        "7"  : {id:  7, x: 28.87,  y:12.73, halfHeight: 6   , halfWidth: 0.1, isStatic: true, isSensor: false},//"shelf1"    
+                        "8"  : {id:  8, x: 28.87,  y:10   , halfHeight: 6   , halfWidth: 0.1, isStatic: true, isSensor: false},//"shelf2"    
+                        "9"  : {id:  9, x: 32.29,  y:11.47, halfHeight: 0.7 , halfWidth: 7.8, isStatic: true, isSensor: false},//"fridgeW"   
+                        "10" : {id: 10, x: 28.46,  y:7.6  , halfHeight: 6.83, halfWidth: 0.1, isStatic: true, isSensor: false},//"fridgeT"   
+                        "11" : {id: 11, x: 5    ,  y:7.75 , halfHeight: 10.1, halfWidth: 1.1, isStatic: true, isSensor: false},//"shelf3"    
+                        "12" : {id: 12, x: 33.4 ,  y:20.1 , halfHeight: 1.47, halfWidth: 11 , isStatic: true, isSensor: false},//"unit3"     
+                        "13" : {id: 13, x: 19,     y: 13.7, halfHeight: 1.4,  halfWidth: 2.4, isStatic:false, isSensor: true},//"waterSensr"
+                        "14" : {id: 14, x: 13.15,  y: 14.7, halfHeight: 0.2,  halfWidth: 4.7, isStatic: true, isSensor: false},//"ovenDoor"  
+                        "15" : {id: 15, x: 25.32,  y: 11.47,halfHeight: 7.8,  halfWidth: 0.7, isStatic: true},//"fridgeDoor"
+                        "16" : {id: 16, x: 17.1,   y: 13.4, polys:[//"bigPot" 
                                 [{x: 0.1, y: 0}, {x: 0.1, y: 1.5}, {x: 0, y: 1.5}, {x: 0, y: 0}], // left side
                                 [{x: 0.1, y: 1.3}, {x: 2, y: 1.3}, {x: 2, y: 1.5}, {x: 0.1, y: 1.5}], // base
                                 [{x: 2.1, y: 0}, {x: 2.1, y: 1.5}, {x: 2, y: 1.5}, {x: 2, y: 0}]], isStatic: false, isSensor:false}, // right side
-                    "colander"  : {id: 18, x: 15, y:13.5, poly:[
+                        "17" : {id: 17, x: 15, y:13.5, poly:[//"colander"  
                                 [{x: 0.1, y: 0}, {x: 0.1, y: 1.8}, {x: 0, y: 1.8}, {x: 0, y: 0}], // left side
                                 [{x: 0.1, y: 1.5}, {x: 2.2, y: 1.5}, {x: 2.2, y: 1.8}, {x: 0.1, y: 1.8}], // base
                                 [{x: 2.3, y: 0}, {x: 2.3, y: 1.8}, {x: 2.2, y: 1.8}, {x: 2.2, y: 0}]], isStatic: false, isSensor:false},// right side
-                    "blueBerry" : {id: 19, x:0, y:0, radius: 2, isStatic: false, isSensor:false},//
+                        "18" : {id: 18, x:0, y:0, radius: 2, isStatic: false, isSensor:false},//"blueBerry" 
+                        };
 
-    };
+
+
 
     // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
     window.requestAnimFrame = (function(){
@@ -153,7 +155,10 @@
 
             this.listenForContact();
             
-            
+            for (var i in initialState) {
+                world[i] = add.build(initialState[i]);
+            }
+
             // On my signal: Unleash pickle.
             (function pickle() {
                 loop.step();
@@ -173,13 +178,11 @@
         
         surroundings: {
             Kitchen: function(){
-                for(i=1;i<18;i++){
-                    //get data whe id=i
-                    //use value to create boxbody or addbox to be decided
+                for(i=0;i<16;i++){
+                    x=x[i],y=y[i],halfH=halfHeight[i],halfW=halfWidth[i],isStatic=isStatic[i],isSensor=isSensor[i];
+                    box2d.createBoxBody(x, y, halfHeight, halfWidth, isStatic, isSensor);                           
                 }
             }
-                //box2d.createBoxBody(27.1, 9.37, 0.1, 5.8, b2Body.b2_staticBody, false);//fridge shelf bottom
-            },
         },
         listenForContact:function(){
             var listener = new Box2D.Dynamics.b2ContactListener;
@@ -215,6 +218,15 @@
      
      
     var add = {
+        build: function(def) {
+            if (def.radius) {
+            return new Circle(def.id, def.x, def.y, NULL_CENTER, def.radius);
+            } else if (def.polys) {
+            return new Poly(def.id, def.x, def.y, NULL_CENTER, def.polys);
+            } else {
+            return new Box(def.id, def.x, def.y, NULL_CENTER, def.halfWidth, def.halfHeight);
+            }
+        }
         backgnd: function(){
             var shape = new Background();
             shapes[shape.id] = shape;
