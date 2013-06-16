@@ -23,7 +23,7 @@
     ,   shapes = {} 
     ;
 
-    var debug = false;
+    var debug = true;
 
     var fixtureProperties = {
         density: 0.75
@@ -40,36 +40,20 @@
     ,   mouseJoint
     ;
 
-    var initialState = {
-                        "0"  : {id:  0, x: 35.13,  y: 12.8, halfHeight: 25.6, halfWidth:2, isStatic: true, isSensor: false},//"rightWall"
-                        "1"  : {id:  1, x: 17.07,  y: 26.6, halfHeight: 2  ,  halfWidth:34.13,isStatic: true, isSensor: false},//"ground"    
-                        "2"  : {id:  2, x: -1,     y: 12.8, halfHeight: 25.6, halfWidth:2   , isStatic: true, isSensor: false},//"leftWall"  
-                        "3"  : {id:  3, x: 6.53 ,  y:20.1 , halfHeight: 8.6 , halfWidth:11  , isStatic: true, isSensor: false},//"unit1"     
-                        "4"  : {id:  4, x: 13.15,  y:22.9 , halfHeight: 4.7 , halfWidth:4.96, isStatic: true, isSensor: false},//"cooker"    
-                        "5"  : {id:  5, x: 20.3 ,  y:20.1 , halfHeight: 9.4 , halfWidth:11  , isStatic: true, isSensor: false},//"unit2"     
-                        "6"  : {id:  6, x: 28.87,  y:20.47, halfHeight: 7.67, halfWidth:10.2, isStatic: true, isSensor: false},//"freezer"   
-                        "7"  : {id:  7, x: 28.87,  y:12.73, halfHeight: 6   , halfWidth: 0.1, isStatic: true, isSensor: false},//"shelf1"    
-                        "8"  : {id:  8, x: 28.87,  y:10   , halfHeight: 6   , halfWidth: 0.1, isStatic: true, isSensor: false},//"shelf2"    
-                        "9"  : {id:  9, x: 32.29,  y:11.47, halfHeight: 0.7 , halfWidth: 7.8, isStatic: true, isSensor: false},//"fridgeW"   
-                        "10" : {id: 10, x: 28.46,  y:7.6  , halfHeight: 6.83, halfWidth: 0.1, isStatic: true, isSensor: false},//"fridgeT"   
-                        "11" : {id: 11, x: 5    ,  y:7.75 , halfHeight: 10.1, halfWidth: 1.1, isStatic: true, isSensor: false},//"shelf3"    
-                        "12" : {id: 12, x: 33.4 ,  y:20.1 , halfHeight: 1.47, halfWidth: 11 , isStatic: true, isSensor: false},//"unit3"     
-                        "13" : {id: 13, x: 19,     y: 13.7, halfHeight: 1.4,  halfWidth: 2.4, isStatic:false, isSensor: true},//"waterSensr"
-                        "14" : {id: 14, x: 13.15,  y: 14.7, halfHeight: 0.2,  halfWidth: 4.7, isStatic: true, isSensor: false},//"ovenDoor"  
-                        "15" : {id: 15, x: 25.32,  y: 11.47,halfHeight: 7.8,  halfWidth: 0.7, isStatic: true},//"fridgeDoor"
-                        "16" : {id: 16, x: 17.1,   y: 13.4, polys:[//"bigPot" 
-                                [{x: 0.1, y: 0}, {x: 0.1, y: 1.5}, {x: 0, y: 1.5}, {x: 0, y: 0}], // left side
-                                [{x: 0.1, y: 1.3}, {x: 2, y: 1.3}, {x: 2, y: 1.5}, {x: 0.1, y: 1.5}], // base
-                                [{x: 2.1, y: 0}, {x: 2.1, y: 1.5}, {x: 2, y: 1.5}, {x: 2, y: 0}]], isStatic: false, isSensor:false}, // right side
-                        "17" : {id: 17, x: 15, y:13.5, poly:[//"colander"  
-                                [{x: 0.1, y: 0}, {x: 0.1, y: 1.8}, {x: 0, y: 1.8}, {x: 0, y: 0}], // left side
-                                [{x: 0.1, y: 1.5}, {x: 2.2, y: 1.5}, {x: 2.2, y: 1.8}, {x: 0.1, y: 1.8}], // base
-                                [{x: 2.3, y: 0}, {x: 2.3, y: 1.8}, {x: 2.2, y: 1.8}, {x: 2.2, y: 0}]], isStatic: false, isSensor:false},// right side
-                        "18" : {id: 18, x:0, y:0, radius: 2, isStatic: false, isSensor:false},//"blueBerry" 
-                        };
+    var ovenDoor; //These need to be placed in an associative array
+    var fridgeDoor;
 
+    // smallPot  = [
+    //             [{x: 0.1, y: 0}, {x: 0.1, y: 1.5}, {x: 0, y: 1.5}, {x: 0, y: 0}], // left side
+    //             [{x: 0.1, y: 1.3}, {x: 2, y: 1.3}, {x: 2, y: 1.5}, {x: 0.1, y: 1.5}], // base
+    //             [{x: 2.1, y: 0}, {x: 2.1, y: 1.5}, {x: 2, y: 1.5}, {x: 2, y: 0}] // right side
+    //             ];
 
-
+    colander  = [
+                [{x: 0.1, y: 0}, {x: 0.1, y: 1.8}, {x: 0, y: 1.8}, {x: 0, y: 0}], // left side
+                [{x: 0.1, y: 1.5}, {x: 2.2, y: 1.5}, {x: 2.2, y: 1.8}, {x: 0.1, y: 1.8}], // base
+                [{x: 2.3, y: 0}, {x: 2.3, y: 1.8}, {x: 2.2, y: 1.8}, {x: 2.2, y: 0}] // right side
+                ];
 
     // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
     window.requestAnimFrame = (function(){
@@ -144,7 +128,8 @@
             box2d.create.world();
             box2d.create.defaultFixture();
 
-            this.surroundings.kitchen();
+            this.surroundings.walls();
+            this.surroundings.units();
             add.vegetables();
             add.bigPot();
             add.door1();
@@ -155,10 +140,7 @@
 
             this.listenForContact();
             
-            for (var i in initialState) {
-                world[i] = add.build(initialState[i]);
-            }
-
+            
             // On my signal: Unleash pickle.
             (function pickle() {
                 loop.step();
@@ -177,12 +159,25 @@
         },
         
         surroundings: {
-            Kitchen: function(){
-                for(i=0;i<16;i++){
-                    x=x[i],y=y[i],halfH=halfHeight[i],halfW=halfWidth[i],isStatic=isStatic[i],isSensor=isSensor[i];
-                    box2d.createBoxBody(x, y, halfHeight, halfWidth, isStatic, isSensor);                           
-                }
-            }
+            walls: function() {
+                add.box({x: 35.13, y: 12.8,height: 25.6, width:2, isStatic: true});// right
+                add.box({x: 17.07, y: 26.6,height: 2, width:34.13, isStatic: true});//ground
+                add.box({x: -1, y: 12.8, height: 25.6, width:2, isStatic: true});//left
+            },
+            units: function() {
+                box2d.createBoxBody(6.53 , 20.1 , 8.6 , 11  , b2Body.b2_staticBody, false);// , 999988 unit1
+                box2d.createBoxBody(13.15, 22.9 , 4.7 , 4.96, b2Body.b2_staticBody, false);// , 999989 cooker
+                box2d.createBoxBody(20.3 , 20.1 , 9.4 , 11  , b2Body.b2_staticBody, false);// , 999990 unit2
+                box2d.createBoxBody(28.87, 20.47, 7.67, 10.2, b2Body.b2_staticBody, false);// , 999991 freezer
+                box2d.createBoxBody(28.87, 12.73, 6   , 0.1 , b2Body.b2_staticBody, false);// , 999992 shelf1
+                box2d.createBoxBody(28.87, 10   , 6   , 0.1 , b2Body.b2_staticBody, false);// , 999993 shelf2
+                box2d.createBoxBody(32.29, 11.47, 0.7 , 7.8 , b2Body.b2_staticBody, false);// , 999994 fridgeW
+                box2d.createBoxBody(28.46, 7.6  , 6.83, 0.1 , b2Body.b2_staticBody, false);// , 999995 fridgeT
+                box2d.createBoxBody(5    , 7.75 , 10.1, 1.1 , b2Body.b2_staticBody, false);// , 999996 shelf3
+                box2d.createBoxBody(33.4 , 20.1 , 1.47, 11  , b2Body.b2_staticBody, false);// , 999997 unit3
+    
+                //box2d.createBoxBody(27.1, 9.37, 0.1, 5.8, b2Body.b2_staticBody, false);//fridge shelf bottom
+            },
         },
         listenForContact:function(){
             var listener = new Box2D.Dynamics.b2ContactListener;
@@ -218,15 +213,6 @@
      
      
     var add = {
-        build: function(def) {
-            if (def.radius) {
-            return new Circle(def.id, def.x, def.y, NULL_CENTER, def.radius);
-            } else if (def.polys) {
-            return new Poly(def.id, def.x, def.y, NULL_CENTER, def.polys);
-            } else {
-            return new Box(def.id, def.x, def.y, NULL_CENTER, def.halfWidth, def.halfHeight);
-            }
-        }
         backgnd: function(){
             var shape = new Background();
             shapes[shape.id] = shape;
@@ -318,19 +304,7 @@
         },
         colander:function(){
             polys = colander;
-
-            for (var j = 0; j < polys.length; j++) {
-                var points = polys[j];
-                var vecs = [];
-                for (var i = 0; i < points.length; i++) {
-                    var vec = new b2Vec2();
-                    vec.Set(points[i].x, points[i].y);
-                    vecs[i] = vec;
-                    //console.log(points[i].x);
-                }
-                console.log(vecs);
-                //createColander(vecs);
-            }
+            box2d.createColander(polys);
         }
     };
 
@@ -400,14 +374,23 @@
         createColander: function(vecs){
             var bodyDef = new b2BodyDef();
             //bodyDef.type = bodyType;
-            bodyDef.position.Set(5, 6.5);
+            bodyDef.position.Set(9, 13);
+            bodyDef.type = b2Body.b2_dynamicBody;
             bodyDef.fixedRotation = true;   ///fixed rotation for the box need to find a way to tip it
             var body =  world.CreateBody(bodyDef);
-
-            fixDef.shape = new b2PolygonShape;
-            fixDef.shape.SetAsArray(vecs, vecs.length);
-            body.CreateFixture(fixDef);
-            
+            for (var j = 0; j < polys.length; j++) {
+                var points = polys[j];
+                var vecs = [];
+                for (var i = 0; i < points.length; i++) {
+                    var vec = new b2Vec2();
+                    vec.Set(points[i].x, points[i].y);
+                    vecs[i] = vec;
+                    //console.log(points[i].x);
+                }
+                fixDef.shape = new b2PolygonShape;
+                fixDef.shape.SetAsArray(vecs, vecs.length);
+                body.CreateFixture(fixDef);
+            }
         },
         create: {
             world: function() {
@@ -500,7 +483,13 @@
 
             for (var b = world.GetBodyList(); b; b = b.m_next) {
                 if (b.IsActive() && typeof b.GetUserData() !== 'undefined' && b.GetUserData() != null) {
+                    //bod=b.GetUserData();
+                    //console.log(bod);
+                    //if (b.GetUserData()!=999998){
                         shapes[b.GetUserData()].update(box2d.get.bodySpec(b));
+                    //}
+                    //z=box2d.get.bodySpec(b));
+                    //console.log(z);
                 }
             }
         },
@@ -518,6 +507,15 @@
     };    
     
     var helpers = {
+        randomColor: function() {
+            // var letters = '0123456789ABCDEF'.split(''),
+            //     color = '#';
+            // for (var i = 0; i < 6; i++ ) {
+            //     color += letters[Math.round(Math.random() * 15)];
+            // }
+            color='#999999';
+            return color;
+        },
         getElementPosition:function(element) {
             var elem=element, tagname="", x=0, y=0;
            
@@ -542,11 +540,11 @@
     /* Shapes down here */
     
     var Shape = function(v) { // v passing x and y value
-        this.id = this.id||Math.round(Math.random() * 999999);//find type of this and create the oven the same or replace random with a defined id
+        this.id = this.id||Math.round(Math.random() * 900900);//find type of this and create the oven the same or replace random with a defined id
         this.x = v.x || Math.random()*23 + 1;
         this.y = v.y || 0;
         this.angle = 0;
-        this.color = '#999999';
+        this.color = helpers.randomColor();
         this.center = { x: null, y: null };
         this.isStatic = v.isStatic || false;
         //console.log(this, "and some");
@@ -603,6 +601,44 @@
         };
     };
     Box.prototype = Shape;
+
+    var Pot = function(options) {
+        Shape.call(this, options);
+            polys = smallPot;
+            polys = colander;
+        
+        this.draw = function() {
+            ctx.save();
+            ctx.translate(this.x * SCALE, this.y * SCALE);
+            ctx.rotate(this.angle);
+            ctx.translate(-(this.x) * SCALE, -(this.y) * SCALE);
+            ctx.beginPath();
+            
+            //loops through the same array as for the box2d polygon shapes
+            for (var j = 0; j < polys.length; j++) {
+                
+                var points = polys[j];
+                ctx.moveTo((this.x+points[i])*SCALE, (this.y+points[i])*SCALE);
+                for (var i = 0; i < points.length; i++) {
+                    ctx.lineTo((this.x+points[i].x)*SCALE, (this.y+points[i].y)*SCALE);
+                }
+                ctx.closePath();
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                
+            } 
+            ctx.restore();
+        };
+    };
+    Box.prototype = Shape;
+
+    var Background = function(){
+        alert("background");
+        base_image = new Image();
+                base_image.src = 'images/KitchenBg.png';
+                ctx.drawImage(base_image, 0, 0);
+    }
+
 
     init.start('canvasId');
 

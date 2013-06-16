@@ -20,16 +20,19 @@
     ,   fixDef
     ,   waterSensor 
     ,   buoyancyController
-    ,   shapes = {} 
     ;
 
-    var debug = false;
+    var debug = true;
 
     var fixtureProperties = {
         density: 0.75
     ,   friction: 0.5
     ,   restitution: 0.3
+    //,   angularDamping: 0.1
     }
+
+    //jQuery variables
+    var doc=$(document);
 
     //mouse
     var mouseX
@@ -40,19 +43,30 @@
     ,   mouseJoint
     ;
 
-    var ovenDoor; //These need to be placed in an associative array
-    var fridgeDoor;
+    //game play elements
+    var pickleShapes = {} 
+    ,   ovenDoor
+    ,   fridgeDoor
+    ,   colanderPot
+    ,   bigPot2
 
-    // smallPot  = [
-    //             [{x: 0.1, y: 0}, {x: 0.1, y: 1.5}, {x: 0, y: 1.5}, {x: 0, y: 0}], // left side
-    //             [{x: 0.1, y: 1.3}, {x: 2, y: 1.3}, {x: 2, y: 1.5}, {x: 0.1, y: 1.5}], // base
-    //             [{x: 2.1, y: 0}, {x: 2.1, y: 1.5}, {x: 2, y: 1.5}, {x: 2, y: 0}] // right side
-    //             ];
+    ,   ovenDoorOpen = false    //flag for triggering door open animation
+    ,   fridgeDoorOpen = false  //flag for triggering door open animation       
+    ,   nextId = 0
+    ,   frameNum = 0            // initital frame counter value for sprite animation
+    ;
+           
+    //Poly shapes
+    bigPot2   = [
+                [{x: -1.5, y: -1.2}, {x: -1.5, y: 1.2}, {x: -1.9, y: 1.2}, {x: -1.9, y: -1.2}], // left side
+                [{x: -1.5, y: 0.8}, {x: 1.5, y: 0.8}, {x: 1.5, y: 1.2}, {x: -1.5, y: 1.2}], // base
+                [{x: 1.9, y: -1.2}, {x: 1.9, y: 1.2}, {x: 1.5, y: 1.2}, {x: 1.5, y: -1.2}] // right side
+                ];    
 
     colander  = [
-                [{x: 0.1, y: 0}, {x: 0.1, y: 1.8}, {x: 0, y: 1.8}, {x: 0, y: 0}], // left side
-                [{x: 0.1, y: 1.5}, {x: 2.2, y: 1.5}, {x: 2.2, y: 1.8}, {x: 0.1, y: 1.8}], // base
-                [{x: 2.3, y: 0}, {x: 2.3, y: 1.8}, {x: 2.2, y: 1.8}, {x: 2.2, y: 0}] // right side
+                [{x: 0.2, y: -0.9}, {x: 0.2, y: 0.9}, {x: 0, y: 0.9}, {x: 0, y: -0.9}], // left side
+                [{x: 0.2, y: 0.6}, {x: 2.8, y: 0.6}, {x: 2.8, y: 0.9}, {x: 0.2, y: 0.9}], // base
+                [{x: 3, y: -0.9}, {x: 3, y: 0.9}, {x: 2.8, y: 0.9}, {x: 2.8, y: -0.9}] // right side
                 ];
 
     // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
@@ -67,59 +81,65 @@
         };
     })();
 
-        document.addEventListener("mousedown", function(e) {
-                isMouseDown = true;
-                handleMouseMove(e);
-                document.addEventListener("mousemove", handleMouseMove, true);
-            }, true);
-         
-         document.addEventListener("mouseup", function() {
-            document.removeEventListener("mousemove", handleMouseMove, true);
-            isMouseDown = false;
-            mouseX = undefined;
-            mouseY = undefined;
-         }, true);
-         
-         function handleMouseMove(e) {
-            mouseX = (e.clientX - canvasPosition.x) / 30;
-            mouseY = (e.clientY - canvasPosition.y) / 30;
-            //console.log(mouseX);
-         };
-         
-         function getBodyAtMouse() {
-            mousePVec = new b2Vec2(mouseX, mouseY);
-            var aabb = new b2AABB();
-            aabb.lowerBound.Set(mouseX - 0.001, mouseY - 0.001);
-            aabb.upperBound.Set(mouseX + 0.001, mouseY + 0.001);
-            
-            // Query the world for overlapping shapes.
+    document.addEventListener("mousedown", function(e) {
+        isMouseDown = true;
+        handleMouseMove(e);
+        document.addEventListener("mousemove", handleMouseMove, true);
+    }, true);
+     
+    document.addEventListener("mouseup", function() {
+        document.removeEventListener("mousemove", handleMouseMove, true);
+        doc.unbind();
+        isMouseDown = false;
+        mouseX = undefined;
+        mouseY = undefined;
 
-            selectedBody = null;
-            world.QueryAABB(getBodyCB, aabb);
-            return selectedBody;
-         }
+    }, true);
 
-         function getBodyCB(fixture) {
-            //console.log(fixture.GetBody().GetUserData());
-            if(fixture.GetBody().GetType()!= b2Body.b2_staticBody) {
-               if(fixture.GetShape().TestPoint(fixture.GetBody().GetTransform(), mousePVec)) {
-                  selectedBody = fixture.GetBody();
-                  return false;
-               }
-            }else if(fixture.GetBody()==ovenDoor){
-                //alert("it has been triggered");
-                world.DestroyBody(ovenDoor);
-                //ovenDoor.active=false;       ///does active state effect static bodies
-                //console.log(ovenDoor.active);
-                return false;   
-            }else if(fixture.GetBody()==fridgeDoor){
-                //alert("it has been triggered");
-                world.DestroyBody(fridgeDoor);
+    function handleMouseMove(e) {
+        mouseX = (e.clientX - canvasPosition.x) / 30;
+        mouseY = (e.clientY - canvasPosition.y) / 30;
+    };
+
+    function getBodyAtMouse() {
+        mousePVec = new b2Vec2(mouseX, mouseY);
+        var aabb = new b2AABB();
+        aabb.lowerBound.Set(mouseX - 0.001, mouseY - 0.001);
+        aabb.upperBound.Set(mouseX + 0.001, mouseY + 0.001);
+
+        // Query the world for overlapping shapes.
+
+        selectedBody = null;
+        world.QueryAABB(getBodyCB, aabb);
+        return selectedBody;
+    }
+
+    function getBodyCB(fixture) {
+        //console.log(fixture.GetBody().GetUserData());
+        if(fixture.GetBody().GetType()!= b2Body.b2_staticBody) {
+           if(fixture.GetShape().TestPoint(fixture.GetBody().GetTransform(), mousePVec)) {
+                selectedBody = fixture.GetBody();
+                if(selectedBody==colanderPot){   //                                                   <<<< rotating the pot
+                    doc.on('mousemove',function(e){
+                        if(e.pageX>400){
+                            selectedBody.angularDamping=0.2;
+                            //console.log(e.pageX);
+                        }else{
+                            selectedBody.angularDamping=5;
+                        }
+                    });
+                }
                 return false;
-            }
-            return false;
-         }
+           }
+        }else if(fixture.GetBody()==ovenDoor){//                                            <<<<trigger for opening oven door
+            world.DestroyBody(ovenDoor);
+            ovenDoorOpen=true;  
+        }else if(fixture.GetBody()==fridgeDoor){//                                        <<<<trigger for opening fridge door
+            world.DestroyBody(fridgeDoor);
+            fridgeDoorOpen=true;
+        }
 
+    }
 
     var init = {
         start: function(id) {
@@ -128,56 +148,70 @@
             box2d.create.world();
             box2d.create.defaultFixture();
 
-            this.surroundings.walls();
-            this.surroundings.units();
-            add.vegetables();
-            add.bigPot();
-            add.door1();
-            add.door2();
-            add.colander();
-            //add.pot();
-            //box2d.createColander();
+            //surroundings
+            rightWall   = add.box({x: 35.13, y: 12.8,height: 25.6, width:2, isStatic: true});// right
+            ground      = add.box({x: 17.07, y: 26.6,height: 2, width:34.13, isStatic: true});//ground
+            leftWall    = add.box({x: -1, y: 12.8, height: 25.6, width:2, isStatic: true});//left
+            
+            //kitchen units
+            unit1       = box2d.createBoxBody(6.53 , 20.1 , 8.6 , 11  , b2Body.b2_staticBody, false);
+            cooker      = box2d.createBoxBody(13.15, 22.9 , 4.7 , 4.96, b2Body.b2_staticBody, false);
+            unit2       = box2d.createBoxBody(20.3 , 20.1 , 9.4 , 11  , b2Body.b2_staticBody, false);
+            freezer     = box2d.createBoxBody(28.87, 20.47, 7.67, 10.2, b2Body.b2_staticBody, false);
+            shelf1      = box2d.createBoxBody(28.87, 12.73, 6   , 0.1 , b2Body.b2_staticBody, false);
+            shelf2      = box2d.createBoxBody(28.87, 10   , 6   , 0.1 , b2Body.b2_staticBody, false);
+            fridgeW     = box2d.createBoxBody(32.29, 11.47, 0.7 , 7.8 , b2Body.b2_staticBody, false);
+            fridgeT     = box2d.createBoxBody(28.46, 7.6  , 6.83, 0.1 , b2Body.b2_staticBody, false);
+            shelf3      = box2d.createBoxBody(5    , 7.75 , 10.1, 1.1 , b2Body.b2_staticBody, false);
+            shelf3      = box2d.createBoxBody(33.4 , 20.1 , 1.47, 11  , b2Body.b2_staticBody, false);
 
+            //pots and doors
+            ovenDoor    = add.box({x: 13.15, y: 14.7,height: 0.2, width:4.7, isStatic: true});
+            fridgeDoor  = add.box({x: 25.32, y: 11.47,height: 7.8, width:0.7, isStatic: true});
+            colanderPot = add.colander({x: 5, y: 13.8, height: 1.8, width:2.4, isStatic: true, imgSrc:'images/pot_no_lid.png' } ); //allows colander to be targeted by name
+            bigPot      = add.bigPot({x: 19, y: 13.4, height: 2.4, width:5.2, isStatic: true, imgSrc:'images/bigPot_no_lid.png'});
+
+            //ingredients
+            step1       = add.ingredients({beef:{x:9, y:13.4,height:0.4,width:0.3,isStatic:false, imgSrc:'images/beef.png'}});
+            // step2       = add.ingredients({onion:{x:9, y:13.4,height:0.1,width:0.3,isStatic:false, imgSrc:'images/onion.png'}});
+            // step3       = add.ingredients({carrotRnd:{x:5,y:13.4,radius:0.3,isStatic:false, imgSrc:'images/carrot.png'}},
+            //                               {capsicum: {x:5, y:13.4,height:0.3,width:0.3,isStatic:false, imgSrc:'images/capsicum.png'}},
+            //                               {potato:   {x:5, y:13.4,height:0.4,width:0.4,isStatic:false, imgSrc:'images/potato.png'}
+            //                               });
+            
+            
             this.listenForContact();
             
-            
-            // On my signal: Unleash pickle.
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<          >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< the loop >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<          >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
+
+            //loop that call the request animFrame and all the loop functions
             (function pickle() {
-                loop.step();
-                loop.update();
+                looping.step();
+                looping.update();
+                if (ovenDoorOpen){
+                    looping.ovenDoorAnim();
+                };
+                if (fridgeDoorOpen){
+                    looping.fridgeDoorAnim();
+                };
                 if (debug) {
                     world.DrawDebugData();
-                }
-                loop.draw();
-                requestAnimFrame(pickle);
-            })();
+                };
+                looping.drawShapes();
+                requestAnimFrame(pickle);       //<<<<<recursive - calls itself
+            })();                               //<<<<<self initialising loop
         },
+
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<             >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< end of loop >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<             >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
+
         canvas: function(id) {
             canvas = document.getElementById(id);
             ctx = canvas.getContext("2d");
             canvasPosition = helpers.getElementPosition(document.getElementById("canvasId"));
-        },
-        
-        surroundings: {
-            walls: function() {
-                add.box({x: 35.13, y: 12.8,height: 25.6, width:2, isStatic: true});// right
-                add.box({x: 17.07, y: 26.6,height: 2, width:34.13, isStatic: true});//ground
-                add.box({x: -1, y: 12.8, height: 25.6, width:2, isStatic: true});//left
-            },
-            units: function() {
-                box2d.createBoxBody(6.53 , 20.1 , 8.6 , 11  , b2Body.b2_staticBody, false);// , 999988 unit1
-                box2d.createBoxBody(13.15, 22.9 , 4.7 , 4.96, b2Body.b2_staticBody, false);// , 999989 cooker
-                box2d.createBoxBody(20.3 , 20.1 , 9.4 , 11  , b2Body.b2_staticBody, false);// , 999990 unit2
-                box2d.createBoxBody(28.87, 20.47, 7.67, 10.2, b2Body.b2_staticBody, false);// , 999991 freezer
-                box2d.createBoxBody(28.87, 12.73, 6   , 0.1 , b2Body.b2_staticBody, false);// , 999992 shelf1
-                box2d.createBoxBody(28.87, 10   , 6   , 0.1 , b2Body.b2_staticBody, false);// , 999993 shelf2
-                box2d.createBoxBody(32.29, 11.47, 0.7 , 7.8 , b2Body.b2_staticBody, false);// , 999994 fridgeW
-                box2d.createBoxBody(28.46, 7.6  , 6.83, 0.1 , b2Body.b2_staticBody, false);// , 999995 fridgeT
-                box2d.createBoxBody(5    , 7.75 , 10.1, 1.1 , b2Body.b2_staticBody, false);// , 999996 shelf3
-                box2d.createBoxBody(33.4 , 20.1 , 1.47, 11  , b2Body.b2_staticBody, false);// , 999997 unit3
-    
-                //box2d.createBoxBody(27.1, 9.37, 0.1, 5.8, b2Body.b2_staticBody, false);//fridge shelf bottom
-            },
         },
         listenForContact:function(){
             var listener = new Box2D.Dynamics.b2ContactListener;
@@ -209,78 +243,49 @@
             world.SetContactListener(listener);
         },
         
-    };        
+    };   //end of init object     
      
      
     var add = {
-        backgnd: function(){
-            var shape = new Background();
-            shapes[shape.id] = shape;
-            box2d.addToWorld(shape); 
-        },
-        circle: function(options) {
-            options.radius = options.radius||0.5 + Math.random()*1;//adds radius to the prototype
-            var shape = new Circle(options);
-            shapes[shape.id] = shape;
-            box2d.addToWorld(shape);
-        },
-
         box: function(options) {
-            options.width = options.width || 0.5 + Math.random()*2;//adds width to the prototype
-            options.height = options.height || 0.5 + Math.random()*2;//adds height to the prototype
             var shape = new Box(options);
-            //shape.id=shapeId;
-            shapes[shape.id] = shape;
+            pickleShapes[shape.id] = shape;
             body = box2d.addToWorld(shape); //addToWorld deals with boxes and circles
             return body;
         },
-        bigPot: function() {
-            // pot edges have no fixtures. If the pot was dynamic the sides would move independently
-            add.box({x: 17.1, y: 13.4,height: 2.4, width:0.2, isStatic: true});// right
-            add.box({x: 19, y: 14.5,height: 0.2, width:3.6, isStatic: true});//bottom
-            add.box({x: 20.9, y: 13.4, height: 2.4, width:0.2, isStatic: true});//left
-            //pot could be made a kinematic body to stop it falling into the oven.
-
-            //Declare the bouyancy controller
-            b2BuoyancyController = Box2D.Dynamics.Controllers.b2BuoyancyController;
-
-            // Set up the buoyancy controller
-            buoyancyController = new b2BuoyancyController();
-            buoyancyController.normal.Set(0, -1);
-            buoyancyController.offset = -230/SCALE;
-            buoyancyController.useDensity = true;
-            buoyancyController.density = 2.0;
-            buoyancyController.linearDrag = 5;
-            buoyancyController.angularDrag = 2;
-            // Add the controller to the world
-            world.AddController(buoyancyController);
-            //The water sensor
-            waterSensor = box2d.createBoxBody(19, 13.7, 3.6, 1.4, b2Body.b2_staticBody, true);
-            //water sensor and pot edges should be fixed to one body not separate bodies and made dynamic and super dense.
+        colander:function(options){
+            polys = colander;
+            var shape = new Pot(options,polys);
+            pickleShapes[shape.id] = shape;
+            body = box2d.addPotToWorld(shape); //adds the shape to the box2d world
+            return body;
         },
+        bigPot:function(options){
+            polys = bigPot2;
+            var shape = new Pot(options,polys);
+            pickleShapes[shape.id] = shape;
+            body = box2d.addPotToWorld(shape,polys); //adds the shape to the box2d world
+            return body;
+            // sensors can only be static. A dynamic pot will be affected.
+            // //Declare the bouyancy controller
+            // b2BuoyancyController = Box2D.Dynamics.Controllers.b2BuoyancyController;
 
-        door1: function() {
-            //ovenDoor = box2d.createBoxBody(13.15, 14.7 , 4.7 , 0.2, b2Body.b2_staticBody, false,999998);
-            ovenDoor = add.box({x: 13.15, y: 14.7,height: 0.2, width:4.7, isStatic: true});
-
-            //console.log(ovenDoor);
-
-            //maybe more effective to add a shape and fixture to the base of the oven 
-            //need more effective naming convention.  
-            //activation could be the solution rather than create and destroy bodyDef.active=true.
+            // //Set up the buoyancy controller
+            // buoyancyController = new b2BuoyancyController();
+            // buoyancyController.normal.Set(0, -1);
+            // buoyancyController.offset = -230/SCALE;
+            // buoyancyController.useDensity = true;
+            // buoyancyController.density = 2.0;
+            // buoyancyController.linearDrag = 5;
+            // buoyancyController.angularDrag = 2;
+            // //Add the controller to the world
+            // world.AddController(buoyancyController);
+            // //The water sensor
+            // waterSensor = box2d.createBoxBody(19, 12.7, 3.6, 1.4, b2Body.b2_dynamicBody, true);
+            // //water sensor and pot edges should be fixed to one body not separate bodies and made dynamic and super dense.
+            
         },
-        door2: function() {
-            fridgeDoor = add.box({x: 25.32, y: 11.47,height: 7.8, width:0.7, isStatic: true});
-            //maybe more effective to add shapes to a fridge body and destoy and create the wall by clicking on a jquery area.
-
-        },
-        pot: function(options) {
-            console.log('pot');
-            var shape = new Pot(options);
-            shapes[shape.id] = shape;
-            box2d.addPotToWorld(shape); //addPotToWorld creates object from verticies
-        },
-        vegetables: function(options) {
+        ingredients: function(options) {
             //create some falling objects
             //to be replaced by a switch statement
             options = options || {};
@@ -290,35 +295,20 @@
                     options.width = Math.random()*0.2 + 0.1  //adds width to the prototype
                     options.height = Math.random()*0.2 + 0.1
                     var shape = new Box(options);
-                    shapes[shape.id] = shape;
+                    pickleShapes[shape.id] = shape;
                     box2d.addToWorld(shape);
                 } else {
                     options.radius = 7.5/SCALE;//radius
                     var shape = new Circle(options);
-                    shapes[shape.id] = shape;
+                    pickleShapes[shape.id] = shape;
                     box2d.addToWorld(shape);
                 }
                 options.x = Math.random() * 2+17.5;
                 options.y = Math.random() * 5-5;
             }
-        },
-        colander:function(){
-            polys = colander;
-
-            for (var j = 0; j < polys.length; j++) {
-                var points = polys[j];
-                var vecs = [];
-                for (var i = 0; i < points.length; i++) {
-                    var vec = new b2Vec2();
-                    vec.Set(points[i].x, points[i].y);
-                    vecs[i] = vec;
-                    //console.log(points[i].x);
-                }
-                console.log(vecs);
-                //createColander(vecs);
-            }
         }
-    };
+
+    };//end of add object
 
     var box2d = {
 
@@ -336,41 +326,33 @@
             return body;
         },
         addPotToWorld: function(shape) {
-            //console.log('add to world2');
             var bodyDef = this.create.bodyDef(shape);
+            bodyDef.type = b2Body.b2_dynamicBody;
+            //bodyDef.position.Set(shape.x, shape.y);                    //set x= 5 and y=6.5
+            bodyDef.angularDamping=5;                        ///angular damping to reduce rotation
             var body = world.CreateBody(bodyDef);
-            
-            //USE JSON to add pots or
-
-            //switch statement to add the correct array to points
-            //each pot pulls data from the array and adds to the variable points and calls the function
-            //below to create it
-            // switch(device)
-            // case(blender){}
-            // case(pot){}
-            
-            for (var j = 0; j < polys.length; j++) {
+            var polyLength = polys.length
+            for (var j = 0; j < polyLength; j++) {
                 var points = polys[j];
                 var vecs = [];
-                for (var i = 0; i < points.length; i++) {
+                var l = points.length;
+                for (var i = 0; i < l; i++) {
                     var vec = new b2Vec2();
                     vec.Set(points[i].x, points[i].y);
                     vecs[i] = vec;
+                    //console.log(points[i].x);
                 }
                 fixDef.shape = new b2PolygonShape;
                 fixDef.shape.SetAsArray(vecs, vecs.length);
                 body.CreateFixture(fixDef);
-            }  
+            }
+            return body; 
         },
         createBoxBody: function (px, py, width, height, bodyType, isSensor,id){
             var bodyDef = new b2BodyDef();
             bodyDef.type = bodyType;
             bodyDef.position.x = px;
             bodyDef.position.y = py;
-            //bodyDef.userData = name;
-            //console.log(bodyDef.userData); //this ids the doors to be targeted for distruction
-                                        //but causes errors with get UserData and shapes array definition
-                                        //need to add a shape variable without drawing a canvas element
             var fixtureDef = new b2FixtureDef();
             fixtureDef.isSensor = isSensor;
             fixtureDef.density = fixtureProperties.density;
@@ -382,18 +364,6 @@
             var body = world.CreateBody(bodyDef);
             var fixture = body.CreateFixture(fixtureDef);
             return body;
-        },
-        createColander: function(vecs){
-            var bodyDef = new b2BodyDef();
-            //bodyDef.type = bodyType;
-            bodyDef.position.Set(5, 6.5);
-            bodyDef.fixedRotation = true;   ///fixed rotation for the box need to find a way to tip it
-            var body =  world.CreateBody(bodyDef);
-
-            fixDef.shape = new b2PolygonShape;
-            fixDef.shape.SetAsArray(vecs, vecs.length);
-            body.CreateFixture(fixDef);
-            
         },
         create: {
             world: function() {
@@ -434,7 +404,6 @@
                 return bodyDef;
             },    
         },
-
         get: {
             bodySpec: function(b) {
                 return {
@@ -448,10 +417,11 @@
                 };
             }
         }
-    };
+    };//end of box2d object
 
 
-    var loop = {
+    //looping object contains all the functions called from the pickle loop
+    var looping = {       
         step: function() {
             var stepRate = 1 / 60;
             world.Step(stepRate, 10, 10);
@@ -486,19 +456,38 @@
 
             for (var b = world.GetBodyList(); b; b = b.m_next) {
                 if (b.IsActive() && typeof b.GetUserData() !== 'undefined' && b.GetUserData() != null) {
-                        shapes[b.GetUserData()].update(box2d.get.bodySpec(b));
+                        pickleShapes[b.GetUserData()].update(box2d.get.bodySpec(b));
                 }
             }
         },
-        draw: function() {            
+        ovenDoorAnim: function(){
+                //ovenDoor Anim here;
+                //alert("triggered ovenDoorOpen animation");
+                frameNum++;
+                if(frameNum==4){
+                    frameNum==0;
+                    alert("end of ovenDoorOpen animation");
+                }
+        },
+        fridgeDoorAnim: function(){
+                //fridgeDoor Anim here;
+                //alert("triggered fridgeDoorOpen animation");
+                frameNum++;
+                if(frameNum==4){
+                    fridgeDoorOpen=false;
+                    frameNum==0;
+                    alert("end of fridgeDoorOpen animation");
+                }
+        },
+        drawShapes: function() {            
              if (!debug){
                 base_image = new Image();
                 base_image.src = 'images/KitchenBg.png';
                 ctx.drawImage(base_image, 0, 0); 
             }
-              
-            for (var i in shapes) {
-                shapes[i].draw();
+
+            for (var i in pickleShapes) {
+                pickleShapes[i].draw();
             }
         }
     };    
@@ -525,10 +514,17 @@
         }
     };
     
-    /* Shapes down here */
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<          >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  shapes  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
+//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<          >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
     
     var Shape = function(v) { // v passing x and y value
-        this.id = this.id||Math.round(Math.random() * 999999);//find type of this and create the oven the same or replace random with a defined id
+        this.id=this.id||null
+            if(this.id===null){
+            this.id=nextId;
+            nextId++;
+            //console.log(this.id);
+        }
         this.x = v.x || Math.random()*23 + 1;
         this.y = v.y || 0;
         this.angle = 0;
@@ -546,7 +542,8 @@
     };
     
     var Circle = function(options) {
-        Shape.call(this, options);
+        Shape.call(this, options);//using call method to indicate which object to reference as this in Shape object
+                                  //and options are passed as parameters 
         this.radius = options.radius || 1;
         
         this.draw = function() {
@@ -557,12 +554,6 @@
             food = new Image();
                 food.src = 'images/berry.png';
             ctx.drawImage(food,(this.x-(this.radius))* SCALE,(this.y-(this.radius)) * SCALE);
-            // ctx.fillStyle = this.color;
-            // ctx.beginPath();
-            // ctx.arc(this.x * SCALE, this.y * SCALE, this.radius * SCALE, 0, Math.PI * 2, true);
-            // ctx.closePath();
-            // ctx.fill();
-
             ctx.restore();
         };
     };
@@ -585,6 +576,23 @@
                 , this.width * SCALE
                 , this.height * SCALE
             );
+            ctx.restore();
+        };
+    };
+    Box.prototype = Shape;
+
+       var Pot = function(options) {
+        Shape.call(this, options);
+        this.width = options.width;
+        this.height = options.height;
+        this.draw = function() {
+            ctx.save();
+            ctx.translate(this.x * SCALE, this.y * SCALE);
+            ctx.rotate(this.angle);
+            ctx.translate(-(this.x) * SCALE, -(this.y) * SCALE);
+            potPic = new Image();
+                potPic.src = options.imgSrc;
+            ctx.drawImage(potPic,(this.x-(this.width))* SCALE,((this.y)-(this.height/2)) * SCALE);//this height and width is not being passed to the pot
             ctx.restore();
         };
     };
